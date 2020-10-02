@@ -14,7 +14,7 @@
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "noUnusedLocals": false,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,

@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import 'dotenv-safe/config'
 import { __prod__, COOKIE_NAME } from './constants'
 import express from 'express'
 import { ApolloServer } from 'apollo-server-express'
@@ -21,33 +22,33 @@ const main = async () => {
   // ~ TypeOrm setup
   const connection = await createConnection({
     type: 'postgres',
-    database: 'forum2',
-    username: 'stevenmchenry',
-    password: '291188',
+    url: process.env.DATABASE_URL,
     logging: true,
-    synchronize: true,
+    synchronize: false,
     migrations: [path.join(__dirname, './migrations/*')],
-    entities: [Post, User, SubForum, Upvote],
+    entities: [Post, User, SubForum, Upvote]
   })
 
   // await Post.delete({}) // delete all posts
   await connection.runMigrations()
 
-
   // ~ Express setup
   const app = express()
+
+  // needed for nginx proxy and cookies
+  app.set('trust proxy', 1)
 
   // CORS 🤮
   app.use(
     cors({
-      origin: 'http://localhost:3000',
+      origin: process.env.CORS_ORIGIN,
       credentials: true,
     })
   )
 
   // ~ Redis setup
   const RedisStore = connectRedis(session)
-  const redis = new Redis()
+  const redis = new Redis(process.env.REDIS_URL)
 
   app.use(
     session({
@@ -61,9 +62,10 @@ const main = async () => {
         httpOnly: true, // cannot access cookie via frontend js
         secure: __prod__, // only works with https
         sameSite: 'lax', // csrf
+        domain: __prod__ ? '.thequad.site' : undefined,
       },
       saveUninitialized: false,
-      secret: 'BEEF',
+      secret: process.env.SESSSION_SECRET,
       resave: false,
     })
   )
@@ -80,8 +82,8 @@ const main = async () => {
   apolloServer.applyMiddleware({ app, cors: false }) // cors is false due to setting up in express
 
   // ~ All Ears
-  app.listen(4000, () => {
-    console.log('server started on localhost:4000')
+  app.listen(parseInt(process.env.PORT), () => {
+    console.log(`server started on localhost:${process.env.PORT}`)
   })
 }
 
