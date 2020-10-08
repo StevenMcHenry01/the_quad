@@ -1,32 +1,35 @@
 import { Button, Stack } from '@chakra-ui/core'
 import { Form, Formik } from 'formik'
 import { NextPage } from 'next'
-import { withUrqlClient } from 'next-urql'
 import React from 'react'
 import { InputField } from '../../../components/InputField/InputField'
 import { MainLayout } from '../../../components/MainLayout/MainLayout'
 import { useUpdatePostMutation } from '../../../generated/graphql'
 import { useGetPostFromUrl } from '../../../hooks/useGetPostFromUrl'
-import {useGetIntId} from '../../../hooks/useGetIntId'
-import { createUrqlClient } from '../../../utils/createUrqlClient'
+import { useGetIntId } from '../../../hooks/useGetIntId'
 import { useRouter } from 'next/router'
+import withApollo from '../../../utils/withApollo'
 
-const EditPost: NextPage = ({ }) => {
+const EditPost: NextPage = ({}) => {
   const router = useRouter()
-  const [{ data, error, fetching }] = useGetPostFromUrl()
+  const { data, error, loading } = useGetPostFromUrl()
   const intId = useGetIntId()
-  const [,updatePost] = useUpdatePostMutation()
+  const [updatePost] = useUpdatePostMutation()
 
-  if (fetching) {
-    return <MainLayout>
-      <div>Loading...</div>
-    </MainLayout>
+  if (loading) {
+    return (
+      <MainLayout>
+        <div>Loading...</div>
+      </MainLayout>
+    )
   }
 
   if (!data?.post) {
-    return <MainLayout>
-      <div>No Post found</div>
-    </MainLayout>
+    return (
+      <MainLayout>
+        <div>No Post found</div>
+      </MainLayout>
+    )
   }
 
   return (
@@ -37,7 +40,7 @@ const EditPost: NextPage = ({ }) => {
           body: data.post.body,
         }}
         onSubmit={async (values, { setErrors }) => {
-          await updatePost({ id: intId, ...values })
+          await updatePost({ variables: { id: intId, ...values } })
           router.back()
         }}
       >
@@ -66,4 +69,4 @@ const EditPost: NextPage = ({ }) => {
   )
 }
 
-export default withUrqlClient(createUrqlClient)(EditPost)
+export default withApollo({ssr: false})(EditPost)

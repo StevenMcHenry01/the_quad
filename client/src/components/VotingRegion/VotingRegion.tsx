@@ -11,13 +11,19 @@ interface VotingRegionProps {
   voteStatus: number | null | undefined
 }
 
-export const VotingRegion: React.FC<VotingRegionProps> = ({ points, id, voteStatus }) => {
-  const [, vote] = useVoteMutation()
+export const VotingRegion: React.FC<VotingRegionProps> = ({
+  points,
+  id,
+  voteStatus,
+}) => {
+  const [vote] = useVoteMutation()
   const [hasUpvote, setHasUpvote] = useState(voteStatus === 1 ? true : false)
-  const [hasDownVote, setHasDownvote] = useState(voteStatus === -1 ? true : false)
+  const [hasDownVote, setHasDownvote] = useState(
+    voteStatus === -1 ? true : false
+  )
   const [loadingState, setLoadingState] = useState<
     'upvote-loading' | 'downvote-loading' | 'not-loading'
-    >('not-loading')
+  >('not-loading')
   return (
     <Flex direction='column' justifyContent='center' alignItems='center' mr={4}>
       <IconButton
@@ -32,9 +38,11 @@ export const VotingRegion: React.FC<VotingRegionProps> = ({ points, id, voteStat
           setHasUpvote(true)
           setHasDownvote(false)
           setLoadingState('upvote-loading')
-          const post = await vote({
-            postId: id,
-            value: 1,
+          await vote({
+            variables: {
+              postId: id,
+              value: 1,
+            },
           })
           setLoadingState('not-loading')
         }}
@@ -53,8 +61,10 @@ export const VotingRegion: React.FC<VotingRegionProps> = ({ points, id, voteStat
           setHasUpvote(false)
           setLoadingState('downvote-loading')
           await vote({
-            postId: id,
-            value: -1,
+            variables: {
+              postId: id,
+              value: -1,
+            },
           })
           setLoadingState('not-loading')
         }}

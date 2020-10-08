@@ -1,7 +1,4 @@
-import React, { useState } from 'react'
-import { Navbar } from '../components/Navbar/Navbar'
-import { withUrqlClient } from 'next-urql'
-import { createUrqlClient } from '../utils/createUrqlClient'
+import React from 'react'
 import {
   useDeletePostMutation,
   useMeQuery,
@@ -22,23 +19,24 @@ import {
 import { NextPage } from 'next'
 import { VotingRegion } from '../components/VotingRegion/VotingRegion'
 import { isServer } from '../utils/isServer'
+import withApollo from '../utils/withApollo'
 
 const Index: NextPage = () => {
-  const [variables, setVariables] = useState({
-    limit: 20,
-    cursor: null as null | string,
-  })
-  const [{ data, fetching }] = usePostsQuery({
-    variables,
-  })
-
-  const [{ data: meData, fetching: meFetching }] = useMeQuery({
-    pause: isServer(),
+  const { data, error, loading, fetchMore, variables } = usePostsQuery({
+    variables: {
+      limit: 20,
+      cursor: null as null | string,
+    },
+    notifyOnNetworkStatusChange: true, // allows for button loading state
   })
 
-  const [, deletePost] = useDeletePostMutation()
+  const { data: meData } = useMeQuery({
+    skip: isServer(),
+  })
 
-  if (!fetching && !data) {
+  const [deletePost] = useDeletePostMutation()
+
+  if (!loading && !data) {
     return <div>Oops you got no posts</div>
   }
 
@@ -48,12 +46,12 @@ const Index: NextPage = () => {
         <Link>create post</Link>
       </NextLink>
       <br />
-      {!data && fetching ? (
+      {!data && loading ? (
         <p>Loading...</p>
       ) : (
         <Stack spacing={4}>
-          {data!.posts.posts.map((p) =>
-            !p ? null : ( // some posts will be null after deleting
+          {data!.posts.posts.map((p) => {
+            return !p ? null : ( // some posts will be null after deleting
               <Flex key={p.id} p={5} shadow='md' borderWidth='1px'>
                 <VotingRegion
                   points={p.points}
@@ -74,7 +72,12 @@ const Index: NextPage = () => {
                         aria-label='delete post'
                         icon='delete'
                         onClick={() => {
-                          deletePost({ id: p.id })
+                          deletePost({
+                            variables: { id: p.id },
+                            update: (cache) => {
+                              cache.evict({ id: 'Post:' + p.id })
+                            },
+                          })
                         }}
                       />
                       <NextLink
@@ -92,19 +95,22 @@ const Index: NextPage = () => {
                 </Box>
               </Flex>
             )
-          )}
+          })}
         </Stack>
       )}
       {data && data.posts.hasMore && (
         <Flex>
           <Button
             onClick={() => {
-              setVariables({
-                limit: variables.limit,
-                cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
+              fetchMore({
+                variables: {
+                  limit: variables?.limit,
+                  cursor:
+                    data.posts.posts[data.posts.posts.length - 1].createdAt,
+                },
               })
             }}
-            isLoading={fetching}
+            isLoading={loading}
             my={4}
             mx='auto'
           >
@@ -116,4 +122,4 @@ const Index: NextPage = () => {
   )
 }
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Index)
+export default withApollo({ ssr: true })(Index)

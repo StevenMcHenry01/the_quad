@@ -24,13 +24,13 @@ const main = async () => {
     type: 'postgres',
     url: process.env.DATABASE_URL,
     logging: true,
-    synchronize: false,
+    synchronize: true,
     migrations: [path.join(__dirname, './migrations/*')],
     entities: [Post, User, SubForum, Upvote]
   })
 
   // await Post.delete({}) // delete all posts
-  await connection.runMigrations()
+  // await connection.runMigrations()
 
   // ~ Express setup
   const app = express()

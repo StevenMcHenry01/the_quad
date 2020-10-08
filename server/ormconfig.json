@@ -4,7 +4,7 @@
   "port": 5432,
   "username": "stevenmchenry",
   "password": "291188",
-  "database": "forum3",
+  "database": "thequadtest",
   "entities": ["dist/entities/*.js"],
   "migrations": ["dist/migrations/dev/*.js"]
 }

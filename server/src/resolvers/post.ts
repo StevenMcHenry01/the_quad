@@ -70,7 +70,9 @@ export class PostResolver {
       await getConnection()
         .createQueryBuilder()
         .update('Post')
-        .set({ points: () => `points + ${realValue * 2}` })
+        .set({
+          points: () => `points + ${realValue * 2}`,
+        })
         .where('id = :id', { id: postId })
         .execute()
     } else if (!upvote) {
@@ -84,7 +86,9 @@ export class PostResolver {
       await getConnection()
         .createQueryBuilder()
         .update('Post')
-        .set({ points: () => `points + ${realValue}` })
+        .set({
+          points: () => `points + ${realValue}`,
+        })
         .where('id = :id', { id: postId })
         .execute()
     }
@@ -128,8 +132,8 @@ export class PostResolver {
         ) "originalPoster",
       ${
         req.session?.userId
-          ? '(select value from upvote where "userId" = $2 and "postId" = p.id) "voteStatus"'
-          : 'null as "voteStatus"'
+          ? '(select value from upvote where "userId" = $2 and "postId" = p.id) as "voteStatus"'
+          : '0 as "voteStatus"'
       }
       from post p
       inner join public.user u on u.id = p."opId"
