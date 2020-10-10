@@ -9,6 +9,7 @@
     "dev": "nodemon dist/index.js",
     "start": "node dist/index.js",
     "env-gen": "gen-env-types .env -o src/env.d.ts -e . ",
+    "gen-mock-data": "npx typeorm migration:create -n Mock",
     "gen-table-creation": "npx typeorm migration:generate -n Initial"
   },
   "keywords": [],

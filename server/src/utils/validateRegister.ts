@@ -11,6 +11,15 @@ export const validateRegister = (options: UsernamePasswordInput) => {
     ]
   }
 
+  if(!options.email.includes('.edu')) {
+    return [
+      {
+        field: 'email',
+        message: 'must enter a school email.',
+      },
+    ]
+  }
+
   // check for username length
   if (options.username.length <= 2) {
     return [
